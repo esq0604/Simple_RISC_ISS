@@ -1,17 +1,25 @@
 #pragma 
 #include<string>
 
+
 class DataPreProcessing
 {
+
 public:
 	DataPreProcessing();
 	~DataPreProcessing();
 
-	std::string DecToHex(const int*& decNum);
+	std::string DecToHex(int(&decNum)[4]);
 	std::string HexToBin(const std::string& str);
+	std::string DecToBin(int(&decNum)[4]);
 	
+
 private:
-	std::string mHexData;
-	std::string mBitData;
+	unsigned char bit[32];
+
+	std::string mhexData;
+	std::string mbitData;
 	
+
+	void BitSlicing(std::string& bitData);
 };

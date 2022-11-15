@@ -1,6 +1,7 @@
 #include<sstream>
 #include<bitset>
 #include<string>
+#include<iostream>
 #include"DataPreProcessing.h"
 
 DataPreProcessing::DataPreProcessing()
@@ -13,33 +14,35 @@ DataPreProcessing::~DataPreProcessing()
 }
 
 //참조배열받기
-std::string DataPreProcessing::DecToHex(const int*& decNum)
+std::string DataPreProcessing::DecToHex(int(&decNum)[4])
 {
     std::string ans = "";
-
-    while (decNum != 0)
+    for (int idx = 0; idx < 4; idx++)
     {
-        int i = 0;
-        int rem = 0;
+        while (*(decNum+idx) != 0)
+        {
+            int i = 0;
+            int rem = 0;
 
-        char ch;
+            char ch;
 
-        rem = (decNum+i) % 16;
+            rem = *(decNum + idx) % 16;
 
-        if (rem < 10)
-            ch = rem + 48;
-        else
-            ch = rem + 55;
+            if (rem < 10)
+                ch = rem + 48;
+            else
+                ch = rem + 55;
 
-        ans += ch;
-        decNum = decNum / 16;
-    }
-    int i = 0, j = ans.size() - 1;
-    while (i <= j)
-    {
-        std::swap(ans[i], ans[j]);
-        i++;
-        j--;
+            ans += ch;
+            *(decNum + idx) = *(decNum + idx) / 16;
+        }
+        int i = 0, j = ans.size() - 1;
+        while (i <= j)
+        {
+            std::swap(ans[i], ans[j]);
+            i++;
+            j--;
+        }
     }
     return ans;
 }
@@ -56,4 +59,23 @@ std::string DataPreProcessing::HexToBin(const std::string& str)
     //        //cout << ((n >> i) & i) ? "1" : "0";
     
     return str;
+}
+
+//진수변환
+std::string DataPreProcessing::DecToBin(int(&decNum)[4])
+{
+    std::string binary;
+    for (int i = 0; i < 4; i++)
+    {
+        binary += std::bitset<8>(*(decNum + i)).to_string();
+    }
+
+    mbitData = binary;
+
+    return binary;
+}
+
+void DataPreProcessing::BitSlicing(std::string& bitData)
+{
+  
 }

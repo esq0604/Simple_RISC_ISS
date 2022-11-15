@@ -10,62 +10,44 @@
 
 using namespace std;
 
-struct InstructionSet {
-    unsigned imm : 17;
-    unsigned rb : 5;
-    unsigned ra : 5;
-    unsigned opcode : 5;
-};
-
-void intSlicing(int a)
-{
-    vector<int> vec(8);
-    int i = 0;
-    while (a != 0)
-    {
-        vec.at(i) = a % 100;
-        a /= 100;
-        i++;
-    }
-
-}
-
 int main()
 {
-    //main에서 file을 받아온뒤 클래스에서 처리하는게 맞는거같음.
     ifstream in("test.txt", std::ios::binary);
     string strHexData = "";
-
     DataPreProcessing dataPreProcessing;
-    InstructionSet instructionSet;
+    const int byteSize = 4;
+    int decNum[byteSize];
+    unsigned char byte[byteSize];
+    string strbitData;
 
-    unsigned char byte[4];
 
+    //file open
     if (in.is_open())
     {
-        in.seekg(0, std::ios::end);            //위치 지정자를 파일 끝으로        
-        int size = in.tellg();                         //위치를 읽음(파일 크기)
+        in.seekg(0, std::ios::end);                   
+        int size = in.tellg();                         
         in.seekg(0, std::ios::beg);
 
-        //unsigned char* buffer = (unsigned char*)malloc(size);
 
         in.seekg(0, std::ios::beg);
-        in.read((char*)&byte, size);  //1byte씩 할당.       
+        in.read((char*)&byte, size);       
     }
     else
         std::cout << "파일을 찾을 수 없습니다!" << endl;
 
     
-
-    //TODO : 4byte -> 1byte씩 슬라이싱, 1byte -> bit단위로 변환 5,5,5,17                      
-        //16진수로 바꾼 데이터 파일을 bit형으로 바꾼다. 00000001 000000100 00000001 000000001
-        //16진수 ->10진수 ->bit or 16진수 -> bit 
-        //비트로 바꾼 데이터를 슬라이싱한다 5, 5, 5, 17     
-    
-    for (auto& i : byte)
+    //char to int
+    for (int i=0; i<4; i++)
     {
-        std::cout << int(i) << endl;
+        cout<<"dec num : " << int(byte[i]) << endl;
+        decNum[i] = int(byte[i]);
     }
+
+    //dec to bit
+    strbitData=dataPreProcessing.DecToBin(decNum);
+
+    Instruction(strbitData);
+
 
     return 0;
 
