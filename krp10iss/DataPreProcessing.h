@@ -1,25 +1,23 @@
 #pragma 
-#include<string>
-
 
 class DataPreProcessing
 {
-
+private:
+	const int INST_LEN = 10;
+	const int BYTE_SIZE = 4;
+	void sliceBit(std::string& bitData);
+	
 public:
 	DataPreProcessing();
 	~DataPreProcessing();
 
-	std::string DecToHex(int(&decNum)[4]);
-	std::string HexToBin(const std::string& str);
-	std::string DecToBin(int(&decNum)[4]);
-	
+	std::string ChangeDecToBinForInst(const int(&decNum)[40]);
+	std::string ChangeDecToBinForInteger(const int& decNum);
+	int ChangeBinToDec(std::string binaryNum);
 
-private:
-	unsigned char bit[32];
+public:
+	int DecNum;
 
-	std::string mhexData;
-	std::string mbitData;
-	
+	std::string BitData;
 
-	void BitSlicing(std::string& bitData);
 };

@@ -2,53 +2,82 @@
 #include<iostream>
 #include<fstream>
 #include<string>
-#include<cstdlib>
-#include<vector>
-#include<stdlib.h>
-#include"instruction.h"
+
 #include"DataPreProcessing.h"
+#include"instruction.h"
+#include"Draw.h"
 
 using namespace std;
 
+const int INST_NUM = 10;
+const int INST_BYTE_SIZE = 4;
+const int INST_BIT_SIZE = 32;
+int decNum[INST_NUM * INST_BYTE_SIZE];
+unsigned char buffer[INST_BYTE_SIZE * INST_NUM];
+
+class DataPreProcessing dataPreProcessing; 
+class Draw Draw;
+string bitData;
+string instSet[10];
+
+void ProcessingData();
+void PrintInstSet();
 int main()
 {
-    ifstream in("test.txt", std::ios::binary);
-    string strHexData = "";
-    DataPreProcessing dataPreProcessing;
-    const int byteSize = 4;
-    int decNum[byteSize];
-    unsigned char byte[byteSize];
-    string strbitData;
-
+    ifstream In("input_file", std::ios::binary);
 
     //file open
-    if (in.is_open())
+    if (In.is_open())
     {
-        in.seekg(0, std::ios::end);                   
-        int size = in.tellg();                         
-        in.seekg(0, std::ios::beg);
+        In.seekg(0, std::ios::end);
+        int size = In.tellg();
+        In.seekg(0, std::ios::beg);
 
+        In.read((char*)buffer, size);
+        In.close();
 
-        in.seekg(0, std::ios::beg);
-        in.read((char*)&byte, size);       
-    }
-    else
-        std::cout << "파일을 찾을 수 없습니다!" << endl;
-
-    
-    //char to int
-    for (int i=0; i<4; i++)
-    {
-        cout<<"dec num : " << int(byte[i]) << endl;
-        decNum[i] = int(byte[i]);
+        
     }
 
-    //dec to bit
-    strbitData=dataPreProcessing.DecToBin(decNum);
 
-    Instruction(strbitData);
-
-
+    //DataProcessing
+    ProcessingData();
+    //DrawMenu
+    Draw.DrawMainMenu();
+    //Operation 
+    PrintInstSet();
+    Instruction Instruction(instSet);
+    Instruction.SetCommand(getchar());
+    Instruction.OperInstSet();
     return 0;
 
+}
+
+void ProcessingData()
+{
+    //char to int
+    for (int i = 0; i < INST_NUM * INST_BYTE_SIZE; ++i)
+    {
+        decNum[i] = buffer[i];
+    }
+
+    //dec to bit && data preprocessing
+    bitData = dataPreProcessing.ChangeDecToBinForInst(decNum);
+
+    for (int i = 0; i < INST_NUM; ++i)
+    {
+        for (int j = 0; j < INST_BIT_SIZE; ++j)
+        {
+            instSet[i] += bitData[i * INST_BIT_SIZE + j];
+        }
+    }
+
+}
+
+void PrintInstSet()
+{
+    for (auto i : instSet)
+    {
+        cout << i << endl;
+    }
 }
