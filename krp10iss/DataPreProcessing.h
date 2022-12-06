@@ -4,15 +4,16 @@ class DataPreProcessing
 {
 private:
 	const int INST_LEN = 10;
-	const int BYTE_SIZE = 4;
-	void sliceBit(std::string& bitData);
 	
+	std::string mByteData[10];
+
 public:
 	DataPreProcessing();
 	~DataPreProcessing();
 
-	std::string ChangeDecToBinForInst(const int(&decNum)[40]);
+	std::string ChangeDecToBinInLittleEndian(const int(&decNum)[4]);
 	std::string ChangeDecToBinForInteger(const int& decNum);
+	uint32_t ChangeBinToByte();
 	int ChangeBinToDec(std::string binaryNum);
 
 public:

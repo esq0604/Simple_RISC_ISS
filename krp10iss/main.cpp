@@ -4,7 +4,7 @@
 #include<string>
 
 #include"DataPreProcessing.h"
-#include"instruction.h"
+#include"Instruction.h"
 #include"Draw.h"
 
 using namespace std;
@@ -12,13 +12,12 @@ using namespace std;
 const int INST_NUM = 10;
 const int INST_BYTE_SIZE = 4;
 const int INST_BIT_SIZE = 32;
-int decNum[INST_NUM * INST_BYTE_SIZE];
+int decNum[INST_NUM][INST_BYTE_SIZE];
 unsigned char buffer[INST_BYTE_SIZE * INST_NUM];
+string instSet[INST_NUM];
+DataPreProcessing* dataPreProcessing = new DataPreProcessing();
 
-class DataPreProcessing dataPreProcessing; 
-class Draw Draw;
-string bitData;
-string instSet[10];
+
 
 void ProcessingData();
 void PrintInstSet();
@@ -26,6 +25,7 @@ int main()
 {
     ifstream In("input_file", std::ios::binary);
 
+ 
     //file open
     if (In.is_open())
     {
@@ -36,19 +36,49 @@ int main()
         In.read((char*)buffer, size);
         In.close();
 
-        
     }
 
 
     //DataProcessing
     ProcessingData();
+
+    Instruction* instruction = new Instruction(instSet, dataPreProcessing);
+    Draw* draw = new Draw(instruction);
     //DrawMenu
-    Draw.DrawMainMenu();
-    //Operation 
-    PrintInstSet();
-    Instruction Instruction(instSet);
-    Instruction.SetCommand(getchar());
-    Instruction.OperInstSet();
+    draw->DrawMainMenu();
+
+    while (true)
+    {
+        if (instruction->GetPC() >= INST_NUM)
+            break;
+
+        char flag;
+        cin >> flag;
+
+        instruction->SetCommand(flag);
+        if (instruction->GetCommand()=='r')
+        {
+            for (int i = instruction->GetPC(); i < INST_NUM; i++)
+            {
+                instruction->OperInstSet();
+            }
+            draw->DrawPC();
+            draw->DrawRegState();
+            break;
+        }
+        else if (instruction->GetCommand() == 's')
+        {
+
+            instruction->OperInstSet();
+            //draw->DrawInstByte(); TODO 이진수 ->10진수
+            draw->DrawPC();
+            draw->DrawRegState();
+            instruction->GetDataAddress();
+        }
+     
+    }
+
+   
     return 0;
 
 }
@@ -56,28 +86,18 @@ int main()
 void ProcessingData()
 {
     //char to int
-    for (int i = 0; i < INST_NUM * INST_BYTE_SIZE; ++i)
-    {
-        decNum[i] = buffer[i];
-    }
-
-    //dec to bit && data preprocessing
-    bitData = dataPreProcessing.ChangeDecToBinForInst(decNum);
-
     for (int i = 0; i < INST_NUM; ++i)
     {
-        for (int j = 0; j < INST_BIT_SIZE; ++j)
+        for (int j = 0; j < INST_BYTE_SIZE; j++)
         {
-            instSet[i] += bitData[i * INST_BIT_SIZE + j];
+            decNum[i][j] = buffer[i* INST_BYTE_SIZE + j];
         }
     }
 
-}
-
-void PrintInstSet()
-{
-    for (auto i : instSet)
+    //dec to bit && data preprocessing
+    for (int i = 0; i < INST_NUM; i++)
     {
-        cout << i << endl;
+        instSet[i] = dataPreProcessing->ChangeDecToBinInLittleEndian(decNum[i]);
     }
 }
+
