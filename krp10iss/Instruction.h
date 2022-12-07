@@ -4,15 +4,33 @@
 using namespace std;
 
 class DataPreProcessing;
-
+class FileReadWrite;
 class Instruction
 {
+public:
+    Instruction(vector<string> instSet);
+    ~Instruction();
+
+    void OperInstSet();
+
+    //Setter
+    void SetCommand(const char& command);
+    void SetDataPreProcessing(DataPreProcessing*&  dataPreProcessing);
+    void SetFileReadWrite(FileReadWrite*&  fileReadWrite);
+
+    //Getter
+    const int GetPC() const;
+    const char GetCommand() const;
+    const vector<int>& GetRegState() const;
+    void GetDataAddress() const;
+
 private:
     enum { INST_NUM = 10 };
     const int REG_SIZE = 32;
     const int INT_BIT = 32;
 
     DataPreProcessing* mDataPreProcessing;
+    FileReadWrite* mFileReadWrite;
     std::vector<pair<int*, int>> mAddressAndVal;
     std::vector<int> mReg;
 
@@ -32,16 +50,4 @@ private:
     char mCommand;
     int mPC;
     
-public:
-    Instruction(string instSet[], DataPreProcessing*& dataPreProceccing);
-    ~Instruction();
-    void OperInstSet();
-    void SetCommand(const char& command);
-    
-    const int GetPC() const;
-    const char GetCommand() const;
-    const vector<int>& GetRegState() const;
-    string GetByte() const;
-    void GetDataAddress() const;
-    //연산 관련 함수들 사용해야할듯. 함수들의 결과는 RegisterA에 넣어줄것.
 };

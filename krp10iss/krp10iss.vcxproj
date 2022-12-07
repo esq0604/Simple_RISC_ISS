@@ -129,12 +129,14 @@
   <ItemGroup>
     <ClCompile Include="DataPreProcessing.cpp" />
     <ClCompile Include="Draw.cpp" />
+    <ClCompile Include="FileReadWrite.cpp" />
     <ClCompile Include="Instruction.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataPreProcessing.h" />
     <ClInclude Include="Draw.h" />
+    <ClInclude Include="FileReadWrite.h" />
     <ClInclude Include="Instruction.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

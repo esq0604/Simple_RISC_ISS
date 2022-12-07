@@ -2,47 +2,50 @@
 #include<string>
 #include<iostream>
 #include"DataPreProcessing.h"
+#include"FileReadWrite.h"
 
-DataPreProcessing::DataPreProcessing() : DecNum(0)
+DataPreProcessing::DataPreProcessing() 
 {
-
+	mInst.resize(10);
 }
 
 DataPreProcessing::~DataPreProcessing()
 {
 }
 
-//바이너리 파일 -> 리틀엔디안으로
-std::string DataPreProcessing::ChangeDecToBinInLittleEndian(const int(&decNum)[4])
+
+
+void DataPreProcessing::SetFileReadWrite(FileReadWrite*& fileReadWrite)
 {
-    std::string temp[4];
-    std::string binary;
-    std::string byteData;
-    for (int i = 3; i >= 0; i--)
-    {
-        temp[i] = std::bitset<8>(*(decNum + i)).to_string();
-    }
-    
-    for (int i = 3; i >= 0; i--)
-    {
-        binary += temp[i];
-    }
-    BitData = binary;
-    return binary;
+	mFileReadWrite = fileReadWrite;
 }
 
-std::string DataPreProcessing::ChangeDecToBinForInteger(const int& decNum)
+std::string DataPreProcessing::GetInstData() const
 {
-    std::string binary = std::bitset<8>(decNum).to_string();
-    return binary;
+	return mInst;
 }
 
-uint32_t DataPreProcessing::ChangeBinToByte()
+std::vector<std::string> DataPreProcessing::ConvertInputFileToProcessableData()
 {
-    return uint32_t();
+	const int INST_SET_NUM = mFileReadWrite->GetInstructinNum();
+	mInst = (mFileReadWrite->GetBuffer());
+	std::vector<std::string> inst_set;
+	inst_set.resize(INST_SET_NUM);
+	for (int i = 0; i < INST_SET_NUM; i++)
+	{
+		for (int j = INST_SET_BYTE_SIZE - 1; j >= 0; j--)
+		{
+			inst_set[i] += (std::bitset<8>(int(mInst[i * INST_SET_BYTE_SIZE + j])).to_string());
+		}
+	}
+	return inst_set;
 }
 
-int DataPreProcessing::ChangeBinToDec(std::string binaryNum) 
+
+
+
+
+int DataPreProcessing::ChangeBinToDec(std::string binaryNum)
 {
-     return strtol(binaryNum.c_str(), nullptr,2);
+	return strtol(binaryNum.c_str(), nullptr, 2);
 }

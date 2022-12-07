@@ -3,53 +3,34 @@
 #include<fstream>
 #include<string>
 
+#include "FileReadWrite.h"
 #include"DataPreProcessing.h"
 #include"Instruction.h"
 #include"Draw.h"
 
 using namespace std;
 
-const int INST_NUM = 10;
-const int INST_BYTE_SIZE = 4;
-const int INST_BIT_SIZE = 32;
-int decNum[INST_NUM][INST_BYTE_SIZE];
-unsigned char buffer[INST_BYTE_SIZE * INST_NUM];
-string instSet[INST_NUM];
-DataPreProcessing* dataPreProcessing = new DataPreProcessing();
-
-
-
-void ProcessingData();
-void PrintInstSet();
 int main()
 {
-    ifstream In("input_file", std::ios::binary);
+    FileReadWrite* fileReadWirte = new FileReadWrite(string("input_file"), string("output_file"));
+    fileReadWirte->ReadFile();
 
- 
-    //file open
-    if (In.is_open())
-    {
-        In.seekg(0, std::ios::end);
-        int size = In.tellg();
-        In.seekg(0, std::ios::beg);
-
-        In.read((char*)buffer, size);
-        In.close();
-
-    }
-
-
-    //DataProcessing
-    ProcessingData();
-
-    Instruction* instruction = new Instruction(instSet, dataPreProcessing);
-    Draw* draw = new Draw(instruction);
-    //DrawMenu
+    DataPreProcessing* dataPreProcessing = new DataPreProcessing();
+    dataPreProcessing->SetFileReadWrite(fileReadWirte);
+    
+    Instruction* instruction = new Instruction(dataPreProcessing->ConvertInputFileToProcessableData()); //Fetch
+    instruction->SetFileReadWrite(fileReadWirte);
+    instruction->SetDataPreProcessing(dataPreProcessing);
+   
+    Draw* draw = new Draw();
+    draw->SetInstruction(instruction);
+    draw->SetDatePreProcessing(dataPreProcessing);
     draw->DrawMainMenu();
+
 
     while (true)
     {
-        if (instruction->GetPC() >= INST_NUM)
+        if (instruction->GetPC() >= fileReadWirte->GetInstructinNum())
             break;
 
         char flag;
@@ -58,7 +39,7 @@ int main()
         instruction->SetCommand(flag);
         if (instruction->GetCommand()=='r')
         {
-            for (int i = instruction->GetPC(); i < INST_NUM; i++)
+            for (int i = instruction->GetPC(); i < fileReadWirte->GetInstructinNum(); i++)
             {
                 instruction->OperInstSet();
             }
@@ -68,36 +49,18 @@ int main()
         }
         else if (instruction->GetCommand() == 's')
         {
-
             instruction->OperInstSet();
-            //draw->DrawInstByte(); TODO 이진수 ->10진수
             draw->DrawPC();
+            draw->DrawInstByte();
             draw->DrawRegState();
             instruction->GetDataAddress();
         }
      
     }
 
-   
+    fileReadWirte->WriteFile();
     return 0;
 
 }
 
-void ProcessingData()
-{
-    //char to int
-    for (int i = 0; i < INST_NUM; ++i)
-    {
-        for (int j = 0; j < INST_BYTE_SIZE; j++)
-        {
-            decNum[i][j] = buffer[i* INST_BYTE_SIZE + j];
-        }
-    }
-
-    //dec to bit && data preprocessing
-    for (int i = 0; i < INST_NUM; i++)
-    {
-        instSet[i] = dataPreProcessing->ChangeDecToBinInLittleEndian(decNum[i]);
-    }
-}
 

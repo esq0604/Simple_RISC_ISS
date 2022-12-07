@@ -1,15 +1,15 @@
 #pragma once
-
-#include"instruction.h"
-#include"DataPreProcessing.h" 
 #include<iostream>
 #include<typeinfo>
 
+#include"instruction.h"
+#include"FileReadWrite.h"
+#include"DataPreProcessing.h"
+
 extern unsigned char buffer[4 * 10];
 
-Instruction::Instruction(string instSet[], DataPreProcessing*& dataPreProceccing) :
-	mPC(0),
-	mDataPreProcessing(dataPreProceccing)
+Instruction::Instruction(vector<string> instSet) :
+	mPC(0)
 {
 	mReg.reserve(REG_SIZE);
 	mDataPreProcessing = new DataPreProcessing;
@@ -71,80 +71,84 @@ Instruction::~Instruction()
 
 void Instruction::OperInstSet()
 {
-
+	int imm17 = mDataPreProcessing->ChangeBinToDec(mImm[mPC]);
+	int imm22 = mDataPreProcessing->ChangeBinToDec(mImm22[mPC]);
+	int rb = mDataPreProcessing->ChangeBinToDec(mRb[mPC]);
+	int ra = mDataPreProcessing->ChangeBinToDec(mRa[mPC]);
+	int rc = mDataPreProcessing->ChangeBinToDec(mRc[mPC]);
+	int shamt = mDataPreProcessing->ChangeBinToDec(mShamt[mPC]);
 
 	if (mOpcode[mPC] == "00000") //ADDI
 	{
-		mReg[mDataPreProcessing->ChangeBinToDec(mRa[mPC])] = mReg[mDataPreProcessing->ChangeBinToDec(mRb[mPC])] + mDataPreProcessing->ChangeBinToDec(mImm[mPC]);
+		mFileReadWrite->mResultBuffer[mFileReadWrite->mResultBufferIdx++] = mReg[ra] = mReg[rb] + imm17;
 	}
 
 	else if (mOpcode[mPC] == "00010") //ORI
 	{
-		mReg[mDataPreProcessing->ChangeBinToDec(mRa[mPC])] = mReg[mDataPreProcessing->ChangeBinToDec(mRb[mPC])] | mDataPreProcessing->ChangeBinToDec(mImm[mPC]);
-		mAddressAndVal.push_back(make_pair(&mReg[mDataPreProcessing->ChangeBinToDec(mRa[mPC])], mReg[mDataPreProcessing->ChangeBinToDec(mRa[mPC])]));
+		mFileReadWrite->mResultBuffer[mFileReadWrite->mResultBufferIdx++] = mReg[ra] = mReg[rb] | imm17;
 	}
 	else if (mOpcode[mPC] == "00110") //MOVEI
 	{
-		mReg[mDataPreProcessing->ChangeBinToDec(mRa[mPC])] = mDataPreProcessing->ChangeBinToDec(mImm[mPC]);
+		mFileReadWrite->mResultBuffer[mFileReadWrite->mResultBufferIdx++] = mReg[ra] = imm17;
 	}
 	else if (mOpcode[mPC] == "00100") //ANDI
 	{
-		mReg[mDataPreProcessing->ChangeBinToDec(mRa[mPC])] = mReg[mDataPreProcessing->ChangeBinToDec(mRb[mPC])] & mDataPreProcessing->ChangeBinToDec(mImm[mPC]);
+		mFileReadWrite->mResultBuffer[mFileReadWrite->mResultBufferIdx++] = mReg[ra] = mReg[rb] & imm17;
 	}
 	else if (mOpcode[mPC] == "01010") //NOT
 	{
-		mReg[mDataPreProcessing->ChangeBinToDec(mRa[mPC])] = ~mReg[mDataPreProcessing->ChangeBinToDec(mRc[mPC])];
+		mFileReadWrite->mResultBuffer[mFileReadWrite->mResultBufferIdx++] = mReg[ra] = ~mReg[rc];
 	}
 	else if (mOpcode[mPC] == "01000") //ADD
 	{
-		mReg[mDataPreProcessing->ChangeBinToDec(mRa[mPC])] = mReg[mDataPreProcessing->ChangeBinToDec(mRb[mPC])] + mReg[mDataPreProcessing->ChangeBinToDec(mRc[mPC])];
+		mFileReadWrite->mResultBuffer[mFileReadWrite->mResultBufferIdx++] = mReg[ra] = mReg[rb] + mReg[rc];
 	}
 	else if (mOpcode[mPC] == "01001") //SUB
 	{
-		mReg[mDataPreProcessing->ChangeBinToDec(mRa[mPC])] = mReg[mDataPreProcessing->ChangeBinToDec(mRb[mPC])] - mReg[mDataPreProcessing->ChangeBinToDec(mRc[mPC])];
+		mFileReadWrite->mResultBuffer[mFileReadWrite->mResultBufferIdx++] = mReg[ra] = mReg[rb] - mReg[rc];
 	}
 	else if (mOpcode[mPC] == "01011") //NEG
 	{
-		mReg[mDataPreProcessing->ChangeBinToDec(mRa[mPC])] = -mReg[mDataPreProcessing->ChangeBinToDec(mRc[mPC])];
+		mFileReadWrite->mResultBuffer[mFileReadWrite->mResultBufferIdx++] = mReg[ra] = -mReg[rc];
 	}
 	else if (mOpcode[mPC] == "01101") //AND
 	{
-		mReg[mDataPreProcessing->ChangeBinToDec(mRa[mPC])] = mReg[mDataPreProcessing->ChangeBinToDec(mRb[mPC])] & mReg[mDataPreProcessing->ChangeBinToDec(mRc[mPC])];
+		mFileReadWrite->mResultBuffer[mFileReadWrite->mResultBufferIdx++] = mReg[ra] = mReg[rb] & mReg[rc];
 	}
 	else if (mOpcode[mPC] == "01110") //XOR
 	{
-		mReg[mDataPreProcessing->ChangeBinToDec(mRa[mPC])] = mReg[mDataPreProcessing->ChangeBinToDec(mRb[mPC])] ^ mReg[mDataPreProcessing->ChangeBinToDec(mRc[mPC])];
+		mFileReadWrite->mResultBuffer[mFileReadWrite->mResultBufferIdx++] = mReg[ra] = mReg[rb] ^ mReg[rc];
 	}
 	else if (mOpcode[mPC] == "01111") //ASR
 	{
 		//sign-extension
-
-
+		if (mI[mPC] == "0")
+			mFileReadWrite->mResultBuffer[mFileReadWrite->mResultBufferIdx++] = mReg[ra] = mReg[rb] >> shamt;
+		else
+			mFileReadWrite->mResultBuffer[mFileReadWrite->mResultBufferIdx++] = mReg[ra] = mReg[rb] >> mReg[rc];
 	}
 	else if (mOpcode[mPC] == "10000")//LSR
 	{
 		//no sign-extensio
 		if (mI[mPC] == "0")
-			mReg[mDataPreProcessing->ChangeBinToDec(mRa[mPC])] = mReg[mDataPreProcessing->ChangeBinToDec(mRb[mPC])] >> mDataPreProcessing->ChangeBinToDec(mShamt[mPC]);
+			mFileReadWrite->mResultBuffer[mFileReadWrite->mResultBufferIdx++] = mReg[ra] = mReg[rb] >> shamt;
 		else
-			mReg[mDataPreProcessing->ChangeBinToDec(mRa[mPC])] = mReg[mDataPreProcessing->ChangeBinToDec(mRb[mPC])] >> mReg[mDataPreProcessing->ChangeBinToDec(mRc[mPC])];
+			mFileReadWrite->mResultBuffer[mFileReadWrite->mResultBufferIdx++] = mReg[ra] = mReg[rb] >> mReg[rc];
 	}
 	else if (mOpcode[mPC] == "10001") //SHL
 	{
 		if (mI[mPC] == "0")
-			mReg[mDataPreProcessing->ChangeBinToDec(mRa[mPC])] = mReg[mDataPreProcessing->ChangeBinToDec(mRb[mPC])] << mDataPreProcessing->ChangeBinToDec(mShamt[mPC]);
+			mFileReadWrite->mResultBuffer[mFileReadWrite->mResultBufferIdx++] = mReg[ra] = mReg[rb] << shamt;
 		else
-			mReg[mDataPreProcessing->ChangeBinToDec(mRa[mPC])] = mReg[mDataPreProcessing->ChangeBinToDec(mRb[mPC])] << mReg[mDataPreProcessing->ChangeBinToDec(mRc[mPC])];
+			mFileReadWrite->mResultBuffer[mFileReadWrite->mResultBufferIdx++] = mReg[ra] = mReg[rb] << mReg[rc];
 	}
 	else if (mOpcode[mPC] == "10010") //ROR
 	{
 
 		if (mI[mPC] == "0")
-			mReg[mDataPreProcessing->ChangeBinToDec(mRa[mPC])] =
-			(mReg[mDataPreProcessing->ChangeBinToDec(mRb[mPC])] >> mDataPreProcessing->ChangeBinToDec(mShamt[mPC])) | (mReg[mDataPreProcessing->ChangeBinToDec(mRb[mPC])] << (INT_BIT - mDataPreProcessing->ChangeBinToDec(mShamt[mPC])));
+			mFileReadWrite->mResultBuffer[mFileReadWrite->mResultBufferIdx++] = mReg[ra] = (mReg[rb] >> shamt) | (mReg[rb] << (INT_BIT - shamt));
 		else
-			mReg[mDataPreProcessing->ChangeBinToDec(mRa[mPC])] =
-			(mReg[mDataPreProcessing->ChangeBinToDec(mRb[mPC])] >> mReg[mDataPreProcessing->ChangeBinToDec(mRc[mPC])]) | (mReg[mDataPreProcessing->ChangeBinToDec(mRb[mPC])] << (INT_BIT - mReg[mDataPreProcessing->ChangeBinToDec(mRc[mPC])]));
+			mFileReadWrite->mResultBuffer[mFileReadWrite->mResultBufferIdx++] = mReg[ra] = (mReg[rb] >> mReg[rc]) | (mReg[rb] << (INT_BIT - mReg[rc]));
 
 	}
 	else if (mOpcode[mPC] == "10011") //BR
@@ -155,30 +159,30 @@ void Instruction::OperInstSet()
 		}
 		else if (mCond[mPC] == "001") //Always
 		{
-			mPC = mReg[mDataPreProcessing->ChangeBinToDec(mRb[mPC])];
+			mPC = mReg[rb];
 		}
-		else if (mCond[mPC] == "010" && mReg[mDataPreProcessing->ChangeBinToDec(mRc[mPC])] == 0) //Zero 
+		else if (mCond[mPC] == "010" && mReg[rc] == 0) //Zero 
 		{
-			mPC = mReg[mDataPreProcessing->ChangeBinToDec(mRb[mPC])];
+			mPC = mReg[rb];
 		}
-		else if (mCond[mPC] == "011" && mReg[mDataPreProcessing->ChangeBinToDec(mRc[mPC])] != 0) //NonZero
+		else if (mCond[mPC] == "011" && mReg[rc] != 0) //NonZero
 		{
-			mPC = mReg[mDataPreProcessing->ChangeBinToDec(mRb[mPC])];
+			mPC = mReg[rb];
 		}
-		else if (mCond[mPC] == "100" && mReg[mDataPreProcessing->ChangeBinToDec(mRc[mPC])] >= 0) //Plus
+		else if (mCond[mPC] == "100" && mReg[rc] >= 0) //Plus
 		{
 
-			mPC = mReg[mDataPreProcessing->ChangeBinToDec(mRb[mPC])];
+			mPC = mReg[rb];
 		}
-		else if (mCond[mPC] == "101" && mReg[mDataPreProcessing->ChangeBinToDec(mRc[mPC])] < 0) //Minus
+		else if (mCond[mPC] == "101" && mReg[rc] < 0) //Minus
 		{
-			mPC = mReg[mDataPreProcessing->ChangeBinToDec(mRb[mPC])];
+			mPC = mReg[rb];
 		}
 
 	}
 	else if (mOpcode[mPC] == "10100") //BRL
 	{
-		mReg[mDataPreProcessing->ChangeBinToDec(mRa[mPC])] = mPC;
+		mReg[ra] = mPC;
 
 		if (mCond[mPC] == "000") // Never
 		{
@@ -186,78 +190,75 @@ void Instruction::OperInstSet()
 		}
 		else if (mCond[mPC] == "001") //Always
 		{
-			mPC = mReg[mDataPreProcessing->ChangeBinToDec(mRa[mPC])];
+			mPC = mReg[ra];
 		}
-		else if (mCond[mPC] == "010" && mReg[mDataPreProcessing->ChangeBinToDec(mRc[mPC])] == 0) //Zero 
+		else if (mCond[mPC] == "010" && mReg[rc] == 0) //Zero 
 		{
-			mPC = mReg[mDataPreProcessing->ChangeBinToDec(mRa[mPC])];
+			mPC = mReg[ra];
 		}
-		else if (mCond[mPC] == "011" && mReg[mDataPreProcessing->ChangeBinToDec(mRc[mPC])] != 0) //NonZero
+		else if (mCond[mPC] == "011" && mReg[rc] != 0) //NonZero
 		{
-			mPC = mReg[mDataPreProcessing->ChangeBinToDec(mRa[mPC])];
+			mPC = mReg[ra];
 		}
-		else if (mCond[mPC] == "100" && mReg[mDataPreProcessing->ChangeBinToDec(mRc[mPC])] >= 0) //Plus
+		else if (mCond[mPC] == "100" && mReg[rc] >= 0) //Plus
 		{
-			mPC = mReg[mDataPreProcessing->ChangeBinToDec(mRb[mPC])];
+			mPC = mReg[rb];
 		}
-		else if (mCond[mPC] == "101" && mReg[mDataPreProcessing->ChangeBinToDec(mRc[mPC])] < 0) //Minus
+		else if (mCond[mPC] == "101" && mReg[rc] < 0) //Minus
 		{
-			mPC = mReg[mDataPreProcessing->ChangeBinToDec(mRb[mPC])];
+			mPC = mReg[rb];
 		}
 	}
 	else if (mOpcode[mPC] == "10101") //J
 	{
 		//TODO : signExt
-		mPC += mDataPreProcessing->ChangeBinToDec(mImm22[mPC]);
+		mPC += imm22;
 	}
 	else if (mOpcode[mPC] == "10110") //JL
 	{
-		mReg[mDataPreProcessing->ChangeBinToDec(mRa[mPC])] = mPC;
+		mReg[ra] = mPC;
 
-		mPC += mDataPreProcessing->ChangeBinToDec(mImm22[mPC]);
+		mPC += imm22;
 	}
 	else if (mOpcode[mPC] == "10111") //LD
 	{
 		if (mRb[mPC] == "11111")
 		{
-			mReg[mDataPreProcessing->ChangeBinToDec(mRa[mPC])] = buffer[mDataPreProcessing->ChangeBinToDec(mImm[mPC])];
+			mFileReadWrite->mResultBuffer[mFileReadWrite->mResultBufferIdx++] = mReg[ra] = mFileReadWrite->mResultBuffer[imm17];
 		}
 
-		mReg[mDataPreProcessing->ChangeBinToDec(mRa[mPC])] =
-			buffer[mDataPreProcessing->ChangeBinToDec(mImm[mPC]) + mReg[mDataPreProcessing->ChangeBinToDec(mRb[mPC])]];
+		mFileReadWrite->mResultBuffer[mFileReadWrite->mResultBufferIdx++] = mReg[ra] = mFileReadWrite->mResultBuffer[imm17 + mReg[rb]];
 	}
 	else if (mOpcode[mPC] == "11000") //LDR
 	{
-		mReg[mDataPreProcessing->ChangeBinToDec(mRa[mPC])] = buffer[mPC + mDataPreProcessing->ChangeBinToDec(mImm[mPC])];
+		mFileReadWrite->mResultBuffer[mFileReadWrite->mResultBufferIdx++] = mReg[ra] = mFileReadWrite->mResultBuffer[mPC + imm17];
 	}
 	else if (mOpcode[mPC] == "11001") //ST
 	{
 		if (mRb[mPC] == "11111")
 		{
-			buffer[mDataPreProcessing->ChangeBinToDec(mImm[mPC])] = mReg[mDataPreProcessing->ChangeBinToDec(mRa[mPC])];
+			mFileReadWrite->mResultBuffer[imm17] = mReg[ra];
 		}
-		buffer[mDataPreProcessing->ChangeBinToDec(mRb[mPC]) + mDataPreProcessing->ChangeBinToDec(mImm[mPC])] =
-			mReg[mDataPreProcessing->ChangeBinToDec(mRa[mPC])];
+		mFileReadWrite->mResultBuffer[rb + imm17] = mReg[ra];
 	}
 	else if (mOpcode[mPC] == "11010") //STR
 	{
-		buffer[mDataPreProcessing->ChangeBinToDec(mRb[mPC]) + mDataPreProcessing->ChangeBinToDec(mImm22[mPC])] =
-			mReg[mDataPreProcessing->ChangeBinToDec(mRa[mPC])];
+		mFileReadWrite->mResultBuffer[rb + imm22] = mReg[ra];
 
 	}
 	else if (mOpcode[mPC] == "11011") //LEA
 	{
-		mReg[mDataPreProcessing->ChangeBinToDec(mRa[mPC])] = mPC + mDataPreProcessing->ChangeBinToDec(mImm22[mPC]);
+		mFileReadWrite->mResultBuffer[mFileReadWrite->mResultBufferIdx++] = mReg[ra] = mPC + imm22;
 
 	}
 	else if (mOpcode[mPC] == "11100") //MSN
 	{
-		mReg[mDataPreProcessing->ChangeBinToDec(mRa[mPC])] = 20181393;
+		mFileReadWrite->mResultBuffer[mFileReadWrite->mResultBufferIdx++] = mReg[ra] = 20181393;
 	}
 	//인터럽트는 구현 X 
 	else
 	{
-		cout << "Other Operator" << endl;
+		cout << "other opcode || not exist opcode" << endl;
 	}
 
 	++mPC;
@@ -268,16 +269,23 @@ void Instruction::SetCommand(const char& command)
 	mCommand = command;
 }
 
+void Instruction::SetDataPreProcessing(DataPreProcessing*& dataPreProcessing)
+{
+	mDataPreProcessing = dataPreProcessing;
+}
+
+void Instruction::SetFileReadWrite(FileReadWrite*& fileReadWrite)
+{
+	mFileReadWrite = fileReadWrite;
+}
+
 
 const vector<int>& Instruction::GetRegState() const
 {
 	return mReg;
 }
 
-string Instruction::GetByte() const
-{
-	return mByte[mPC];
-}
+
 
 void Instruction::GetDataAddress() const
 {

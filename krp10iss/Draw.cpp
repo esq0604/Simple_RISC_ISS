@@ -1,12 +1,13 @@
 #include "Draw.h"
 #include "Instruction.h"
+#include "DataPreProcessing.h"
 #include<iostream>
 #include<iomanip>
 
 
-Draw::Draw(Instruction* instruction) :
-	mInstruction(instruction)
+Draw::Draw() 
 {
+
 }
 
 void Draw::DrawMainMenu() const
@@ -32,10 +33,27 @@ void Draw::DrawRegState() const
 
 void Draw::DrawInstByte() const
 {
-	cout << "Inst:" << mInstruction->GetByte() << endl;
+	string data = mDataPreProcessing->GetInstData();
+	int pc = mInstruction->GetPC()-1;
+	cout << "Inst :";
+	for(int i=3; i>=0; i--)
+	std::cout << hex << int(data[(pc*4)+i]) <<dec;
+	cout << endl;
 }
 
 void Draw::DrawPC() const
 {
-	cout << "PC :" << mInstruction->GetPC() << endl;
+	cout  << "PC :"<< setw(8) << setfill('0') <<hex << (mInstruction->GetPC()-1)*4 <<dec <<endl;
 }
+
+void Draw::SetInstruction(Instruction* inst)
+{
+	mInstruction = inst;
+}
+
+void Draw::SetDatePreProcessing(DataPreProcessing* datapreprocessing)
+{
+	mDataPreProcessing = datapreprocessing;
+}
+
+
